@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Us Day Card</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #fce4ec; /* Light Pink Background */
+      text-align: center;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    #hearts-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .heart {
+        position: absolute;
+        --c: #ff5273;
+        width: 20px;
+        aspect-ratio: 1;
+        background:
+        radial-gradient(at 70% 31%, var(--c) 29%, #0000 30%),
+        radial-gradient(at 30% 31%, var(--c) 29%, #0000 30%),
+        linear-gradient(var(--c) 0 0) bottom/100% 50% no-repeat;
+        clip-path: polygon(-43% 0, 50% 91%, 143% 0);
+        animation: bounce 1s infinite alternate;
+        pointer-events: auto; /* Allow pointer events */
+        cursor: pointer; /* Changes the cursor to a pointer to indicate it's clickable */
+    }
+
+    .heart-wrapper {
+      position: absolute;
+      width: 100px; /* Larger than the heart itself */
+      height: 100px; /* Larger than the heart itself */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer; /* Indicates clickable area */
+    }
+
+    @keyframes bounce {
+      to {
+        transform: translateY(-10px);
+      }
+    }
+
+    #card {
+  background-color: rgba(255, 204, 203, 0.8);
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  max-width: 400px;
+  width: 90%; /* Make width responsive */
+  max-height: 70vh; /* Set a max-height */
+  overflow-y: auto; /* Enable scrolling for overflow content */
+  z-index: 1;
+  margin: 20px; /* Ensure some space around the card */
+}
+
+h1, #message {
+  color: #d81b60; /* Dark Pink Text */
+  margin: 0 0 10px; /* Adjust spacing as needed */
+}
+
+#message {
+  font-size: 1em; /* Adjust base font size */
+  white-space: pre-line;
+  color: #333; /* Dark Text Color */
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 600px) {
+  #card {
+    max-height: 50vh; /* Adjust height on smaller screens */
+    padding: 15px; /* Adjust padding */
+  }
+
+  h1 {
+    font-size: 1.5em; /* Adjust heading size on smaller screens */
+  }
+
+  #message {
+    font-size: 0.9em; /* Adjust message font size on smaller screens */
+  }
+}
+
+  </style>
+</head>
+<body>
+  <div id="hearts-container"></div>
+
+  <div id="card">
+    <h1>Happy Us Day!</h1>
+    <p id="message"></p>
+  </div>
+
+  <script>
+    const messageText = "To the love of my life,\n\nHappy Valentine's Day!\n\nYou mean the world to me, and I'm grateful to have you by my side. Every moment with you is special, and my love for you grows stronger every day.\n\nI cherish the bond we share and look forward to creating many more beautiful memories together.\n\nWith all my love,\n[Your Name]";
+
+    let index = 0;
+    const messageElement = document.getElementById('message');
+
+    function typeMessage() {
+      if (index < messageText.length) {
+        messageElement.innerHTML += messageText.charAt(index);
+        index++;
+        setTimeout(typeMessage, 50);
+      }
+    }
+
+    typeMessage();
+
+    // Create bouncing hearts all over the page and make them disappear on click
+    const heartsContainer = document.getElementById('hearts-container');
+
+    // function createHeart() {
+    //   const heart = document.createElement('div');
+    //   heart.className = 'heart';
+    //   heart.style.left = `${Math.random() * 100}vw`;
+    //   heart.style.top = `${Math.random() * 100}vh`;
+
+    //   // Add an event listener to remove the heart on click
+    //   heart.addEventListener('click', function() {
+    //     heart.remove(); // Remove the heart from the DOM
+    //   });
+
+    //   heartsContainer.appendChild(heart);
+    // }
+
+    function createHeart() {
+
+      const wrapper = document.createElement('div');
+      wrapper.className = 'heart-wrapper';
+
+        const heart = document.createElement('div');
+        heart.className = 'heart';
+
+        const card = document.getElementById('card');
+        const cardRect = card.getBoundingClientRect();
+
+        let heartX, heartY;
+
+        // Randomly decide if heart should be placed vertically (top/bottom) or horizontally (left/right) relative to the card
+        if (Math.random() > 0.5) {
+            // Vertical placement (above or below the card)
+            heartX = Math.random() * window.innerWidth;
+            if (Math.random() > 0.5) {
+                heartY = Math.random() * (cardRect.top - 20); // Above the card, ensuring a little gap
+            } else {
+                heartY = cardRect.bottom + (Math.random() * (window.innerHeight - cardRect.bottom - 20)); // Below the card
+            }
+        } else {
+            // Horizontal placement (left or right of the card)
+            if (Math.random() > 0.5) {
+                heartX = Math.random() * (cardRect.left - 20); // Left of the card
+            } else {
+                heartX = cardRect.right + (Math.random() * (window.innerWidth - cardRect.right - 20)); // Right of the card
+            }
+            heartY = Math.random() * window.innerHeight;
+        }
+
+        wrapper.style.left = `${heartX}px`;
+        wrapper.style.top = `${heartY}px`;
+
+        wrapper.appendChild(heart); // Add the heart to the wrapper
+
+        // Add an event listener to remove the heart on click
+        wrapper.addEventListener('click', function() {
+          wrapper.remove(); // Remove the heart from the DOM
+            // Send a request to the ESP32 when the heart is clicked
+            fetch('/click', {
+              method: 'POST', // You can use 'GET' if your server handles GET requests
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ clicked: true }),
+          });
+        });
+
+        heartsContainer.appendChild(wrapper);
+    }
+
+    setInterval(createHeart, 1500);
+  </script>
+</body>
+</html>
